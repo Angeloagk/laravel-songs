@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
-    libpq-dev \   # <- voor PostgreSQL driver
+    libpq-dev \        # PostgreSQL driver
     zip \
     unzip \
     git \
