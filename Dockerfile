@@ -39,8 +39,7 @@ ENV PORT=10080
 # Expose port 80
 EXPOSE 80
 
-# Voer migraties uit
-RUN php artisan migrate --force
+
 
 # Start Apache
 CMD ["apache2-foreground"]
