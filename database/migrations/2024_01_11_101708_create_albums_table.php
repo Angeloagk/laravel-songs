@@ -15,14 +15,20 @@ return new class extends Migration
     Schema::create('albums', function (Blueprint $table) {
     $table->id();
     $table->string('name');
-    $table->string('year',4)->nullable();
+    $table->string('year', 4)->nullable();
     $table->integer('times_sold')->nullable();
-    $table->unsignedBigInteger('band_id')->nullable()->default(null);
 
+    // juiste foreign key kolom
+    $table->unsignedBigInteger('band_id')->nullable();
 
-    $table->foreign('band_id')->references('id')->on('bands')->onDelete('cascade');
+    $table->foreign('band_id')
+          ->references('id')
+          ->on('bands')
+          ->onDelete('cascade');
+
     $table->timestamps();
 });
+
     }
 
 
