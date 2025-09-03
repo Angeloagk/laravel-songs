@@ -41,3 +41,13 @@ Route::resource('albums', AlbumController::class);
 
 // Optional: remove auth.php entirely
 // require __DIR__.'/auth.php';
+use Illuminate\Support\Facades\DB;
+
+Route::get('/testdb', function () {
+    try {
+        DB::connection()->getPdo();
+        return "DB connected!";
+    } catch (\Exception $e) {
+        return "DB connection failed: " . $e->getMessage();
+    }
+});

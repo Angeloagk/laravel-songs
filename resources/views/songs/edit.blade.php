@@ -9,7 +9,7 @@
 </head>
 
 <body class="bg-gray-100">
-    @if (Auth::check())
+
     <div class="container mx-auto mt-8">
         <h1 class="text-2xl font-semibold mb-4">Edit Song: {{ $song->title }}</h1>
 
