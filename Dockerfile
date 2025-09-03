@@ -6,11 +6,12 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
+    libpq-dev \   # <- voor PostgreSQL driver
     zip \
     unzip \
     git \
     curl \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+    && docker-php-ext-install pdo_mysql pdo_pgsql mbstring exif pcntl bcmath gd
 
 # Installeer Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -38,8 +39,6 @@ ENV PORT=10080
 
 # Expose port 80
 EXPOSE 80
-
-
 
 # Start Apache
 CMD ["apache2-foreground"]
