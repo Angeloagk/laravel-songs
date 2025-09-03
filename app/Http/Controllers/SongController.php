@@ -9,38 +9,44 @@ use Illuminate\Support\Facades\Http;
 
 class SongController extends Controller
 {
+    // 🔹 Lijst van alle songs
     public function index()
     {
         $songs = Song::all();
-        return view('songs.index', ['songs' => $songs]);
+        return view('songs.index', compact('songs'));
     }
 
+    // 🔹 Detailpagina van 1 song
     public function show($id)
     {
-        $song = Song::find($id);
-        return view('songs.show', ['song' => $song]);
+        $song = Song::findOrFail($id); // Fail als de song niet bestaat
+        return view('songs.show', compact('song'));
     }
 
+    // 🔹 Create pagina + ophalen data van API
     public function create(Request $request)
     {
         $api_key = '7defd3431098e35855dd39c3ceffe7d8';
         $title = $request->input('title');
 
-        $response = Http::get('https://ws.audioscrobbler.com/2.0/', [
-            'method' => 'track.search',
-            'api_key' => $api_key,
-            'format' => 'json',
-            'track' => $title,
-        ]);
+        $songsFromAPI = [];
 
-        $responseData = $response->json();
-        $songsFromAPI = isset($responseData['results']['trackmatches']['track'])
-            ? $responseData['results']['trackmatches']['track']
-            : [];
+        if ($title) {
+            $response = Http::get('https://ws.audioscrobbler.com/2.0/', [
+                'method' => 'track.search',
+                'api_key' => $api_key,
+                'format' => 'json',
+                'track' => $title,
+            ]);
 
-        return view('songs.create', ['songsFromAPI' => $songsFromAPI]);
+            $responseData = $response->json();
+            $songsFromAPI = $responseData['results']['trackmatches']['track'] ?? [];
+        }
+
+        return view('songs.create', compact('songsFromAPI'));
     }
 
+    // 🔹 Song opslaan
     public function store(Request $request)
     {
         $request->validate([
@@ -50,17 +56,20 @@ class SongController extends Controller
 
         Song::create($request->only(['title', 'singer']));
 
-        return redirect()->route('songs.index')->with('success', 'Song has been added successfully.');
+        return redirect()->route('songs.index')
+            ->with('success', 'Song has been added successfully.');
     }
 
+    // 🔹 Edit pagina
     public function edit($id)
     {
-        $song = Song::find($id);
+        $song = Song::findOrFail($id);
         $albums = Album::all();
 
-        return view('songs.edit', compact('id', 'song', 'albums'));
+        return view('songs.edit', compact('song', 'albums'));
     }
 
+    // 🔹 Update song
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -68,44 +77,34 @@ class SongController extends Controller
             'singer' => 'required|string|max:255',
         ]);
 
-        $song = Song::find($id);
-        if (!$song) {
-            return redirect()->route('songs.index')->with('error', 'Song not found.');
-        }
+        $song = Song::findOrFail($id);
 
         $song->update([
-            'title' => $request->input('title'),
-            'singer' => $request->input('singer'),
+            'title' => $request->title,
+            'singer' => $request->singer,
         ]);
 
-        // Attach new albums
-        if ($request->has('albums')) {
-            $selectedAlbums = $request->input('albums');
-            $currentAlbums = $song->albums->pluck('id')->toArray();
-            $albumsToAdd = array_diff($selectedAlbums, $currentAlbums);
-
-            foreach ($albumsToAdd as $albumId) {
-                $song->albums()->attach($albumId);
-            }
+        // 🔹 Nieuwe albums koppelen
+        if ($request->filled('albums')) {
+            $song->albums()->syncWithoutDetaching($request->albums);
         }
 
-        // Detach albums to remove
-        if ($request->has('removeAlbums')) {
-            $song->albums()->detach($request->input('removeAlbums'));
+        // 🔹 Albums verwijderen
+        if ($request->filled('removeAlbums')) {
+            $song->albums()->detach($request->removeAlbums);
         }
 
-        return redirect()->route('songs.show', ['song' => $id])
+        return redirect()->route('songs.show', $song->id)
             ->with('success', 'Song has been updated successfully.');
     }
 
+    // 🔹 Verwijder song
     public function destroy($id)
     {
-        $song = Song::find($id);
-        if (!$song) {
-            return redirect()->route('songs.index')->with('error', 'Song not found.');
-        }
-
+        $song = Song::findOrFail($id);
         $song->delete();
-        return redirect()->route('songs.index')->with('success', 'Song has been deleted successfully.');
+
+        return redirect()->route('songs.index')
+            ->with('success', 'Song has been deleted successfully.');
     }
 }
