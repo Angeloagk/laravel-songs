@@ -1,6 +1,7 @@
+# Gebruik PHP 8.2 met Apache
 FROM php:8.2-apache
 
-# Install dependencies
+# Install system dependencies en PHP-extensies
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libonig-dev \
@@ -11,23 +12,35 @@ RUN apt-get update && apt-get install -y \
     curl \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 
-# Install Composer
+# Installeer Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Set working directory
+# Zet werkdirectory
 WORKDIR /var/www/html
 
-# Copy project files
+# Kopieer alle bestanden naar de container
 COPY . .
 
-# Install PHP dependencies
+# Installeer PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Set permissions
+# Pas Apache DocumentRoot aan naar public/
+RUN sed -i 's|/var/www/html|/var/www/html/public|' /etc/apache2/sites-available/000-default.conf
+RUN a2enmod rewrite
+
+# Zet permissies voor storage en cache
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Stel omgeving variabelen (optioneel, kunnen ook via Render UI)
+ENV APP_ENV=production
+ENV APP_DEBUG=false
+ENV PORT=10080
 
 # Expose port 80
 EXPOSE 80
 
-# Run Apache
+# Voer migraties uit
+RUN php artisan migrate --force
+
+# Start Apache
 CMD ["apache2-foreground"]
