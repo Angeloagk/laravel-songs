@@ -28,6 +28,7 @@ class BandController extends Controller
     }
 
     public function store(Request $request)
+<<<<<<< HEAD
     {
         $validatedData = $request->validate(
             [
@@ -50,6 +51,28 @@ class BandController extends Controller
         return redirect()->route('bands.index')->with('success', 'Band is successfully added!');
     }
 
+=======
+{
+    $validatedData = $request->validate([
+        'name' => 'required|string|max:255',
+        'genre' => 'required|string',
+        'founded' => 'required|integer|digits:4',
+        'albums' => 'nullable|array', // assuming albums is an array of album IDs
+        'album_name' => 'nullable|string|max:255', // assuming you want to associate an album with a name
+    ]);
+
+    $band = Band::create($validatedData);
+
+    // Check if albums were selected
+    if (!empty($validatedData['albums'])) {
+        // Associate the selected albums with their names
+        $band->albums()->attach($validatedData['albums'], ['album_name' => $validatedData['album_name']]);
+    }
+
+    return redirect()->route('bands.index')->with('success', 'Band is successfully added!');
+}
+
+>>>>>>> 50c894a86b61dccd84cf6a8ee60896140aee874b
 
     public function show(Band $band)
     {
@@ -59,15 +82,23 @@ class BandController extends Controller
 
     public function update(Request $request, $id)
     {
+<<<<<<< HEAD
         $request->validate(
             [
+=======
+        $request->validate([
+>>>>>>> 50c894a86b61dccd84cf6a8ee60896140aee874b
             'name' => 'required|string|max:255',
             'genre' => 'required|string|max:255',
             'founded' => 'required|integer|digits:4',
             'albums' => 'nullable|array',
             'removeAlbums' => 'nullable|array',
+<<<<<<< HEAD
             ]
         );
+=======
+        ]);
+>>>>>>> 50c894a86b61dccd84cf6a8ee60896140aee874b
 
         $band = Band::find($id);
 
@@ -75,6 +106,7 @@ class BandController extends Controller
             return redirect()->route('bands.index')->with('error', 'Band not found.');
         }
 
+<<<<<<< HEAD
         $band->update(
             [
             'name' => $request->input('name'),
@@ -82,6 +114,13 @@ class BandController extends Controller
             'founded' => $request->input('founded'),
             ]
         );
+=======
+        $band->update([
+            'name' => $request->input('name'),
+            'genre' => $request->input('genre'),
+            'founded' => $request->input('founded'),
+        ]);
+>>>>>>> 50c894a86b61dccd84cf6a8ee60896140aee874b
 
         // Update the foreign key (band_id) of the selected albums
         if (!empty($request->input('albums'))) {

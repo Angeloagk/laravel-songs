@@ -16,9 +16,15 @@ class Album extends Model
     }
 
     public function band()
+<<<<<<< HEAD
     {
         return $this->belongsTo(Band::class);
     }
+=======
+{
+    return $this->belongsTo(Band::class);
+}
+>>>>>>> 50c894a86b61dccd84cf6a8ee60896140aee874b
 
 
     protected $fillable = [

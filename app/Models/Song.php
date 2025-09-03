@@ -10,7 +10,11 @@ class Song extends Model
 {
     public function albums()
     {
+<<<<<<< HEAD
         return $this->belongsToMany(Album::class);
+=======
+        return $this->belongsToMany (Album::class);
+>>>>>>> 50c894a86b61dccd84cf6a8ee60896140aee874b
     }
      // Geef de tabelnaam op
      protected $table = 'songs';
@@ -24,5 +28,9 @@ class Song extends Model
  
      // Geef aan of de timestamps moeten worden bijgehouden (standaard is true)
      public $timestamps = true;
+<<<<<<< HEAD
 }
+=======
+ }
+>>>>>>> 50c894a86b61dccd84cf6a8ee60896140aee874b
 

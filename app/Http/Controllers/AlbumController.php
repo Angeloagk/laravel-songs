@@ -24,13 +24,18 @@ class AlbumController extends Controller
 
     public function store(Request $request)
     {
+<<<<<<< HEAD
         $validatedData = $request->validate(
             [
+=======
+        $validatedData = $request->validate([
+>>>>>>> 50c894a86b61dccd84cf6a8ee60896140aee874b
             'name' => 'required|string|max:255',
             'year' => 'nullable|integer|digits:4',
             'times_sold' => 'nullable|integer',
             'band_id' => 'required|exists:bands,id',
             'songs' => 'nullable|array',
+<<<<<<< HEAD
             ]
         );
 
@@ -54,6 +59,28 @@ class AlbumController extends Controller
                 }
             }
         );
+=======
+        ]);
+
+        DB::transaction(function () use ($validatedData) {
+            $album = new Album($validatedData);
+            $album->save();
+
+            if (!empty($validatedData['songs'])) {
+                $songs = Song::find($validatedData['songs']);
+                foreach ($songs as $song) {
+                    $title = $song->title;
+                    $singer = $song->singer;
+                    $album->songs()->attach($song, ['title' => $title, 'singer' => $singer]);
+                }
+            }
+
+            if (!empty($validatedData['band_id'])) {
+                $band = Band::find($validatedData['band_id']);
+                $album->band()->associate($band);
+            }
+        });
+>>>>>>> 50c894a86b61dccd84cf6a8ee60896140aee874b
 
         return redirect()->route('albums.index')->with('success', 'Album is successfully added!');
     }
@@ -77,15 +104,24 @@ class AlbumController extends Controller
 
     public function update(Request $request, $id)
     {
+<<<<<<< HEAD
         $request->validate(
             [
             /*  'name' => 'required|string|max:255',
+=======
+        $request->validate([
+           /*  'name' => 'required|string|max:255',
+>>>>>>> 50c894a86b61dccd84cf6a8ee60896140aee874b
             'year' => 'required|integer|digits:4',
             'times_sold' => 'required|integer', */
             'addSongs' => 'nullable|array',
             'removeSongs' => 'nullable|array',
+<<<<<<< HEAD
             ]
         );
+=======
+        ]);
+>>>>>>> 50c894a86b61dccd84cf6a8ee60896140aee874b
 
         $album = Album::find($id);
         if (!$album) {
