@@ -1,42 +1,44 @@
-# Gebruik officiële PHP image met Apache
+# Gebruik PHP 8.2 + Apache
 FROM php:8.2-apache
 
-# Installeer systeem dependencies
+# Installeer PHP-extensies en tools
 RUN apt-get update && apt-get install -y \
     libpng-dev \
-    libjpeg-dev \
-    libfreetype6-dev \
+    libonig-dev \
+    libxml2-dev \
     zip \
-    git \
     unzip \
+    git \
     curl \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo pdo_mysql gd
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd \
+    && a2enmod rewrite
 
-# Enable Apache modules die Laravel nodig heeft
-RUN a2enmod rewrite
+# Composer toevoegen
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Stel werkdirectory in
+# Zet werkdirectory
 WORKDIR /var/www/html
-
-# Kopieer composer vanaf officiële image
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # Kopieer projectbestanden
 COPY . .
 
-# Pas Apache config aan zodat DocumentRoot naar /public wijst
-RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf \
-    && sed -i 's|/var/www/|/var/www/html/public|g' /etc/apache2/apache2.conf
-
-# Stel juiste permissies in
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
-
-# Installeer PHP dependencies
+# Installeer Laravel dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Expose port 80
+# Zet permissies
+RUN chown -R www-data:www-data storage bootstrap/cache
+
+# Zet .env en genereer app key
+RUN cp .env.testing .env && php artisan key:generate --ansi
+
+# Pas Apache config aan voor Laravel routes
+RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|g' /etc/apache2/sites-available/000-default.conf \
+    && echo '<Directory /var/www/html/public>\n\
+        AllowOverride All\n\
+        Require all granted\n\
+    </Directory>' >> /etc/apache2/apache2.conf
+
+# Exposeer poort 80
 EXPOSE 80
 
 # Start Apache
