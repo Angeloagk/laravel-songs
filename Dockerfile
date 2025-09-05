@@ -1,36 +1,42 @@
-# Gebruik PHP 8.2 met Apache
+# Gebruik officiële PHP image met Apache
 FROM php:8.2-apache
 
-# Install dependencies
+# Installeer systeem dependencies
 RUN apt-get update && apt-get install -y \
     libpng-dev \
-    libonig-dev \
-    libxml2-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
     zip \
-    unzip \
     git \
+    unzip \
     curl \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo pdo_mysql gd
 
-# Installeer Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# Enable Apache modules die Laravel nodig heeft
+RUN a2enmod rewrite
 
-# Zet werkdirectory
+# Stel werkdirectory in
 WORKDIR /var/www/html
 
-# Kopieer alle bestanden
+# Kopieer composer vanaf officiële image
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# Kopieer projectbestanden
 COPY . .
+
+# Pas Apache config aan zodat DocumentRoot naar /public wijst
+RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf \
+    && sed -i 's|/var/www/|/var/www/html/public|g' /etc/apache2/apache2.conf
+
+# Stel juiste permissies in
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Installeer PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Zet permissies voor storage en cache
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-
-# Kopieer env-testing als basis en genereer key
-RUN cp .env.testing .env && php artisan key:generate --ansi
-
-# Expose Apache poort
+# Expose port 80
 EXPOSE 80
 
 # Start Apache
