@@ -1,7 +1,6 @@
-# Gebruik PHP 8.2 + Apache
 FROM php:8.2-apache
 
-# Installeer PHP-extensies en tools
+# Installeer PHP-extensies + tools
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libonig-dev \
@@ -10,36 +9,34 @@ RUN apt-get update && apt-get install -y \
     unzip \
     git \
     curl \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd \
+    libpq-dev \
+    && docker-php-ext-install pdo_pgsql pgsql mbstring exif pcntl bcmath gd \
     && a2enmod rewrite
 
-# Composer toevoegen
+# Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Zet werkdirectory
+# Werkdirectory
 WORKDIR /var/www/html
 
-# Kopieer projectbestanden
+# Kopieer project
 COPY . .
 
-# Installeer Laravel dependencies
+# Laravel dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Zet permissies
+# Permissies
 RUN chown -R www-data:www-data storage bootstrap/cache
 
-# Zet .env en genereer app key
+# Gebruik .env.testing en genereer app key
 RUN cp .env.testing .env && php artisan key:generate --ansi
 
-# Pas Apache config aan voor Laravel routes
+# Apache config
 RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|g' /etc/apache2/sites-available/000-default.conf \
     && echo '<Directory /var/www/html/public>\n\
         AllowOverride All\n\
         Require all granted\n\
     </Directory>' >> /etc/apache2/apache2.conf
 
-# Exposeer poort 80
 EXPOSE 80
-
-# Start Apache
 CMD ["apache2-foreground"]
