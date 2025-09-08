@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Song;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use App\Models\Song;
 
 class SongTest extends TestCase
 {

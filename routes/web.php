@@ -1,10 +1,10 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\SongController;
-use App\Http\Controllers\BandController;
 use App\Http\Controllers\AlbumController;
+use App\Http\Controllers\BandController;
+use App\Http\Controllers\SongController;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 
 // Homepage
 Route::get('/', function () {
@@ -29,8 +29,9 @@ Route::resource('albums', AlbumController::class);
 Route::get('/testdb', function () {
     try {
         DB::connection()->getPdo();
-        return "DB connected!";
+
+        return 'DB connected!';
     } catch (\Exception $e) {
-        return "DB connection failed: " . $e->getMessage();
+        return 'DB connection failed: '.$e->getMessage();
     }
 });

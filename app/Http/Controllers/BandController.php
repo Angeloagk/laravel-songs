@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Band;
 use App\Models\Album;
+use App\Models\Band;
+use Illuminate\Http\Request;
 
 class BandController extends Controller
 {
     public function index()
     {
         $bands = Band::all();
+
         return view('bands.index', compact('bands'));
     }
 
@@ -22,6 +23,7 @@ class BandController extends Controller
     public function edit(Band $band)
     {
         $albums = Album::all();
+
         return view('bands.edit', compact('band', 'albums'));
     }
 
@@ -38,7 +40,7 @@ class BandController extends Controller
         $band = Band::create($validatedData);
 
         // Koppel geselecteerde albums
-        if (!empty($validatedData['albums'])) {
+        if (! empty($validatedData['albums'])) {
             $band->albums()->attach($validatedData['albums'], ['album_name' => $validatedData['album_name']]);
         }
 
@@ -62,7 +64,7 @@ class BandController extends Controller
 
         $band = Band::find($id);
 
-        if (!$band) {
+        if (! $band) {
             return redirect()->route('bands.index')->with('error', 'Band not found.');
         }
 
@@ -73,12 +75,12 @@ class BandController extends Controller
         ]);
 
         // Koppel albums
-        if (!empty($request->input('albums'))) {
+        if (! empty($request->input('albums'))) {
             Album::whereIn('id', $request->input('albums'))->update(['band_id' => $band->id]);
         }
 
         // Ontkoppel albums
-        if (!empty($request->input('removeAlbums'))) {
+        if (! empty($request->input('removeAlbums'))) {
             Album::whereIn('id', $request->input('removeAlbums'))->update(['band_id' => null]);
         }
 
@@ -88,6 +90,7 @@ class BandController extends Controller
     public function destroy(Band $band)
     {
         $band->delete();
+
         return redirect()->route('bands.index')->with('success', 'Band is successfully deleted!');
     }
 }

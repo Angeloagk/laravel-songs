@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Album;
-use App\Models\Song;
 use App\Models\Band;
+use App\Models\Song;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class AlbumController extends Controller
@@ -13,12 +13,14 @@ class AlbumController extends Controller
     public function index()
     {
         $albums = Album::all();
+
         return view('albums.index', compact('albums'));
     }
 
     public function create()
     {
         $bands = Band::all();
+
         return view('albums.create', compact('bands'));
     }
 
@@ -36,17 +38,17 @@ class AlbumController extends Controller
             $album = new Album($validatedData);
             $album->save();
 
-            if (!empty($validatedData['songs'])) {
+            if (! empty($validatedData['songs'])) {
                 $songs = Song::find($validatedData['songs']);
                 foreach ($songs as $song) {
                     $album->songs()->attach($song, [
                         'title' => $song->title,
-                        'singer' => $song->singer
+                        'singer' => $song->singer,
                     ]);
                 }
             }
 
-            if (!empty($validatedData['band_id'])) {
+            if (! empty($validatedData['band_id'])) {
                 $band = Band::find($validatedData['band_id']);
                 $album->band()->associate($band);
             }
@@ -79,7 +81,7 @@ class AlbumController extends Controller
         ]);
 
         $album = Album::find($id);
-        if (!$album) {
+        if (! $album) {
             return redirect()->route('albums.index')->with('error', 'Album not found.');
         }
 
@@ -98,6 +100,7 @@ class AlbumController extends Controller
     public function destroy(Album $album)
     {
         $album->delete();
+
         return redirect()->route('albums.index')->with('success', 'Album is successfully deleted!');
     }
 }

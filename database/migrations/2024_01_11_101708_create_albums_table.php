@@ -12,25 +12,24 @@ return new class extends Migration
     public function up(): void
     {
 
-    Schema::create('albums', function (Blueprint $table) {
-    $table->id();
-    $table->string('name');
-    $table->string('year', 4)->nullable();
-    $table->integer('times_sold')->nullable();
+        Schema::create('albums', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('year', 4)->nullable();
+            $table->integer('times_sold')->nullable();
 
-    // juiste foreign key kolom
-    $table->unsignedBigInteger('band_id')->nullable();
+            // juiste foreign key kolom
+            $table->unsignedBigInteger('band_id')->nullable();
 
-    $table->foreign('band_id')
-          ->references('id')
-          ->on('bands')
-          ->onDelete('cascade');
+            $table->foreign('band_id')
+                ->references('id')
+                ->on('bands')
+                ->onDelete('cascade');
 
-    $table->timestamps();
-});
+            $table->timestamps();
+        });
 
     }
-
 
     public function down(): void
     {

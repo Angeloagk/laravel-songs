@@ -13,7 +13,7 @@ class Album extends Model
         'name',
         'year',
         'times_sold',
-        'band_id'
+        'band_id',
     ];
 
     public function songs()

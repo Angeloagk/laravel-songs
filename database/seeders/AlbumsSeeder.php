@@ -2,10 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Album;
-
-
+use Illuminate\Database\Seeder;
 
 class AlbumsSeeder extends Seeder
 {

@@ -10,20 +10,52 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: laravel_songs_db_tk6i
+          POSTGRES_USER: laravel_songs_db_tk6i_user
+          POSTGRES_PASSWORD: secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U laravel_songs_db_tk6i_user -d laravel_songs_db_tk6i"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: mbstring, bcmath, pdo_mysql
+          extensions: mbstring, bcmath, pdo_pgsql
+
+      - name: Copy .env.testing to .env
+        run: cp .env.testing .env
 
       - name: Install Composer dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
+      - name: Generate app key
+        run: php artisan key:generate
+
+      - name: Run migrations
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_DATABASE: laravel_songs_db_tk6i
+          DB_USERNAME: laravel_songs_db_tk6i_user
+          DB_PASSWORD: secret
+        run: php artisan migrate --force
+
       - name: Run tests
         run: php artisan test
 
-      - name: Run PHP CodeSniffer
-        run: vendor/bin/phpcs app/
+      - name: Run Laravel Pint (Linter)
+        run: ./vendor/bin/pint --test

@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('songs', function (Blueprint $table) {
             $table->id();
-            $table->string('title',100);
+            $table->string('title', 100);
             $table->text('singer')->nullable();
             $table->timestamps();
         });
-    } 
+    }
 
     /**
      * Reverse the migrations.

@@ -31,9 +31,9 @@ class NewPasswordController extends Controller
     {
         $request->validate(
             [
-            'token' => ['required'],
-            'email' => ['required', 'email'],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+                'token' => ['required'],
+                'email' => ['required', 'email'],
+                'password' => ['required', 'confirmed', Rules\Password::defaults()],
             ]
         );
 
@@ -45,8 +45,8 @@ class NewPasswordController extends Controller
             function ($user) use ($request) {
                 $user->forceFill(
                     [
-                    'password' => Hash::make($request->password),
-                    'remember_token' => Str::random(60),
+                        'password' => Hash::make($request->password),
+                        'remember_token' => Str::random(60),
                     ]
                 )->save();
 
@@ -60,6 +60,6 @@ class NewPasswordController extends Controller
         return $status == Password::PASSWORD_RESET
                     ? redirect()->route('login')->with('status', __($status))
                     : back()->withInput($request->only('email'))
-            ->withErrors(['email' => __($status)]);
+                        ->withErrors(['email' => __($status)]);
     }
 }
