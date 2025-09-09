@@ -1,7 +1,11 @@
 <?php
 
 return [
+
+    'default' => env('DB_CONNECTION', 'pgsql'),
+
     'connections' => [
+
         'sqlite' => [
             'driver' => 'sqlite',
             'url' => env('DATABASE_URL'),
@@ -55,5 +59,9 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
         ],
+
     ],
+
+    'migrations' => 'migrations',
+
 ];
