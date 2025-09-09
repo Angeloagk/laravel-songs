@@ -1,26 +1,23 @@
-name: Laravel CI
+name: CI/CD Laravel
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches: [ "dev", "staging", "main" ]
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-
     services:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_DB: laravel_songs_db_tk6i
-          POSTGRES_USER: laravel_songs_db_tk6i_user
+          POSTGRES_DB: laravel_test
+          POSTGRES_USER: laravel_user
           POSTGRES_PASSWORD: secret
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready -U laravel_songs_db_tk6i_user -d laravel_songs_db_tk6i"
+          --health-cmd="pg_isready -U laravel_user -d laravel_test"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
@@ -35,11 +32,11 @@ jobs:
           php-version: '8.2'
           extensions: mbstring, bcmath, pdo_pgsql
 
-      - name: Copy .env.testing to .env
-        run: cp .env.testing .env
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
 
-      - name: Install Composer dependencies
-        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+      - name: Copy .env.testing
+        run: cp .env.testing .env
 
       - name: Generate app key
         run: php artisan key:generate
@@ -49,8 +46,8 @@ jobs:
           DB_CONNECTION: pgsql
           DB_HOST: localhost
           DB_PORT: 5432
-          DB_DATABASE: laravel_songs_db_tk6i
-          DB_USERNAME: laravel_songs_db_tk6i_user
+          DB_DATABASE: laravel_test
+          DB_USERNAME: laravel_user
           DB_PASSWORD: secret
         run: php artisan migrate --force
 
@@ -59,3 +56,20 @@ jobs:
 
       - name: Run Laravel Pint (Linter)
         run: ./vendor/bin/pint --test
+
+  deploy:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Render
+        run: |
+          if [[ "${GITHUB_REF##*/}" == "dev" ]]; then
+            echo "Deploying to TEST environment..."
+            curl -X POST "${{ secrets.RENDER_TEST_DEPLOY_HOOK }}"
+          elif [[ "${GITHUB_REF##*/}" == "staging" ]]; then
+            echo "Deploying to STAGING environment..."
+            curl -X POST "${{ secrets.RENDER_STAGING_DEPLOY_HOOK }}"
+          elif [[ "${GITHUB_REF##*/}" == "main" ]]; then
+            echo "Deploying to PRODUCTION environment..."
+            curl -X POST "${{ secrets.RENDER_PROD_DEPLOY_HOOK }}"
+          fi
