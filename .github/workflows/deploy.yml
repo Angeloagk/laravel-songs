@@ -12,26 +12,25 @@ jobs:
   test:
     runs-on: ubuntu-latest
     services:
-      postgres:
-        image: postgres:15
+      mysql:
+        image: mysql:8
         env:
-          POSTGRES_USER: laravel_user
-          POSTGRES_PASSWORD: secret
-          POSTGRES_DB: laravel_test
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: laravel_test
         ports:
-          - 5432:5432
+          - 3306:3306
         options: >-
-          --health-cmd="pg_isready -U laravel_user -d laravel_test"
+          --health-cmd="mysqladmin ping -h localhost -uroot -proot"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
     env:
-      DB_CONNECTION: pgsql
-      DB_HOST: localhost
-      DB_PORT: 5432
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
       DB_DATABASE: laravel_test
-      DB_USERNAME: laravel_user
-      DB_PASSWORD: secret
+      DB_USERNAME: root
+      DB_PASSWORD: root
     steps:
       - uses: actions/checkout@v3
 
@@ -43,18 +42,16 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
 
-      - name: Create .env file
-        run: |
-          cp .env.example .env
-          php artisan config:clear
+      - name: Use CI environment
+        run: cp .env.ci .env
 
       - name: Generate app key
         run: php artisan key:generate
 
       - name: Wait for DB
         run: |
-          for i in {1..10}; do
-            if pg_isready -U laravel_user -d laravel_test; then
+          for i in {1..15}; do
+            if mysqladmin ping -h127.0.0.1 -uroot -proot --silent; then
               echo "DB is up!"
               break
             fi
@@ -67,28 +64,3 @@ jobs:
 
       - name: Run tests
         run: php artisan test
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - uses: actions/checkout@v3
-      - name: Deploy to Render
-        run: |
-          # Kies service ID op basis van branch
-          if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
-            SERVICE_ID=${{ secrets.RENDER_SERVICE_ID_PROD }}
-          elif [[ "${GITHUB_REF}" == "refs/heads/dev" ]]; then
-            SERVICE_ID=${{ secrets.RENDER_SERVICE_ID_DEV }}
-          elif [[ "${GITHUB_REF}" == "refs/heads/test" ]]; then
-            SERVICE_ID=${{ secrets.RENDER_SERVICE_ID_TEST }}
-          elif [[ "${GITHUB_REF}" == "refs/heads/develop" ]]; then
-            SERVICE_ID=${{ secrets.RENDER_SERVICE_ID_STAGE }}
-          else
-            echo "No deployment for this branch."
-            exit 0
-          fi
-
-          curl -X POST "https://api.render.com/v1/services/$SERVICE_ID/deploys" \
-               -H "Accept: application/json" \
-               -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}"

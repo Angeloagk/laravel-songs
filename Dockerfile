@@ -1,42 +1,29 @@
+# Gebruik een officiële PHP image met Apache
 FROM php:8.2-apache
 
-# Installeer PHP-extensies + tools
+# Installeer systeem dependencies
 RUN apt-get update && apt-get install -y \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    zip \
-    unzip \
-    git \
-    curl \
-    libpq-dev \
-    && docker-php-ext-install pdo_pgsql pgsql mbstring exif pcntl bcmath gd \
+    git unzip libzip-dev libpng-dev libonig-dev libxml2-dev \
+    && docker-php-ext-install pdo_mysql mbstring zip exif pcntl bcmath gd \
     && a2enmod rewrite
 
-# Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# Installeer Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Werkdirectory
+# Set working directory
 WORKDIR /var/www/html
 
-# Kopieer project
+# Kopieer project bestanden
 COPY . .
 
-# Laravel dependencies
-RUN composer install --no-dev --optimize-autoloader
-
-# Permissies
+# Rechten voor storage en bootstrap/cache
 RUN chown -R www-data:www-data storage bootstrap/cache
 
-# Gebruik .env.testing en genereer app key
-RUN cp .env.testing .env && php artisan key:generate --ansi
+# Gebruik CI env bestand en genereer app key
+RUN cp .env.ci .env && php artisan key:generate --ansi
 
-# Apache config
-RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|g' /etc/apache2/sites-available/000-default.conf \
-    && echo '<Directory /var/www/html/public>\n\
-        AllowOverride All\n\
-        Require all granted\n\
-    </Directory>' >> /etc/apache2/apache2.conf
-
+# Expose poort 80
 EXPOSE 80
+
+# Start Apache in foreground
 CMD ["apache2-foreground"]

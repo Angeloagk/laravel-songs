@@ -11,13 +11,13 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_DB: laravel_songs_db_tk6i
-          POSTGRES_USER: laravel_songs_db_tk6i_user
+          POSTGRES_DB: laravel_test_db
+          POSTGRES_USER: laravel
           POSTGRES_PASSWORD: secret
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready -U laravel_songs_db_tk6i_user -d laravel_songs_db_tk6i"
+          --health-cmd="pg_isready -U laravel -d laravel_test_db"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
@@ -35,8 +35,8 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
 
-      - name: Copy .env file
-        run: cp .env .env.testing
+      - name: Copy .env
+        run: cp .env.example .env
 
       - name: Generate app key
         run: php artisan key:generate --ansi
@@ -46,8 +46,8 @@ jobs:
           DB_CONNECTION: pgsql
           DB_HOST: localhost
           DB_PORT: 5432
-          DB_DATABASE: laravel_songs_db_tk6i
-          DB_USERNAME: laravel_songs_db_tk6i_user
+          DB_DATABASE: laravel_test_db
+          DB_USERNAME: laravel
           DB_PASSWORD: secret
         run: php artisan migrate --force
 
