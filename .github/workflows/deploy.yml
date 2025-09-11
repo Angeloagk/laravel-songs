@@ -14,12 +14,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: 8.2
+
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
+
       - name: Run Pint (lint)
         run: vendor/bin/pint --test || exit 1
 
@@ -42,12 +45,12 @@ jobs:
 
     env:
       DB_CONNECTION: pgsql
-      DB_HOST: db
+      DB_HOST: 127.0.0.1  # localhost voor GitHub Actions
       DB_PORT: 5432
       DB_DATABASE: laravel_songs_db_tk6i
       DB_USERNAME: laravel_songs_db_tk6i_user
       DB_PASSWORD: secret
-      DB_SCHEMA: ${{ github.ref == 'refs/heads/test' && 'test' || 'dev' }}
+      DB_SCHEMA: dev        # gebruik 'dev' voor dev branch, 'test' voor test branch
 
     steps:
       - uses: actions/checkout@v3
@@ -69,7 +72,7 @@ jobs:
       - name: Wait for DB
         run: |
           for i in {1..30}; do
-            if pg_isready -h db -p 5432 -U laravel_songs_db_tk6i_user -d laravel_songs_db_tk6i; then
+            if pg_isready -h 127.0.0.1 -p 5432 -U laravel_songs_db_tk6i_user -d laravel_songs_db_tk6i; then
               echo "DB is up!"
               break
             fi
