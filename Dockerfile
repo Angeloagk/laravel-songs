@@ -29,7 +29,7 @@ RUN composer install --no-dev --optimize-autoloader
 # Stel permissies in
 RUN chown -R www-data:www-data storage bootstrap/cache
 
-# Genereer app key (maakt gebruik van APP_KEY van Render env vars)
+# Optioneel: genereer app key als deze niet is ingesteld via Render
 RUN php artisan key:generate --ansi || true
 
 # Apache configuratie
