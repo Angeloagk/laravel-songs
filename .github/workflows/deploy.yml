@@ -14,15 +14,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: 8.2
-
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
-
       - name: Run Pint (lint)
         run: vendor/bin/pint --test || exit 1
 
@@ -50,7 +47,7 @@ jobs:
       DB_DATABASE: laravel_songs_db_tk6i
       DB_USERNAME: laravel_songs_db_tk6i_user
       DB_PASSWORD: secret
-      DB_SCHEMA: test
+      DB_SCHEMA: ${{ github.ref == 'refs/heads/test' && 'test' || 'dev' }}
 
     steps:
       - uses: actions/checkout@v3
