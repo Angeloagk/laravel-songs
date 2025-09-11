@@ -45,12 +45,12 @@ jobs:
 
     env:
       DB_CONNECTION: pgsql
-      DB_HOST: 127.0.0.1  # localhost voor GitHub Actions
+      DB_HOST: db          # <- gebruik de service naam
       DB_PORT: 5432
       DB_DATABASE: laravel_songs_db_tk6i
       DB_USERNAME: laravel_songs_db_tk6i_user
       DB_PASSWORD: secret
-      DB_SCHEMA: dev        # gebruik 'dev' voor dev branch, 'test' voor test branch
+      DB_SCHEMA: public    # <- gebruik 'public' als default
 
     steps:
       - uses: actions/checkout@v3
@@ -72,7 +72,7 @@ jobs:
       - name: Wait for DB
         run: |
           for i in {1..30}; do
-            if pg_isready -h 127.0.0.1 -p 5432 -U laravel_songs_db_tk6i_user -d laravel_songs_db_tk6i; then
+            if pg_isready -h db -p 5432 -U laravel_songs_db_tk6i_user -d laravel_songs_db_tk6i; then
               echo "DB is up!"
               break
             fi
