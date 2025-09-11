@@ -1,3 +1,12 @@
+name: CI/CD Laravel OTAP
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+      - test
+
 jobs:
   test:
     runs-on: ubuntu-latest
