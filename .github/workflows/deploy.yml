@@ -10,19 +10,24 @@ on:
 
 jobs:
   lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: 8.2
+
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
+
       - name: Run Pint (lint)
         run: vendor/bin/pint --test || exit 1
 
   test:
+    name: Test
     runs-on: ubuntu-latest
     needs: lint
     services:
@@ -32,8 +37,6 @@ jobs:
           POSTGRES_USER: laravel_songs_db_tk6i_user
           POSTGRES_PASSWORD: secret
           POSTGRES_DB: laravel_songs_db_tk6i
-        ports:
-          - 5432:5432
         options: >-
           --health-cmd="pg_isready -U laravel_songs_db_tk6i_user -d laravel_songs_db_tk6i"
           --health-interval=10s
@@ -69,15 +72,13 @@ jobs:
       - name: Wait for DB
         run: |
           for i in {1..30}; do
-            if pg_isready -h db -U laravel_songs_db_tk6i_user -d laravel_songs_db_tk6i; then
+            if pg_isready -h db -p 5432 -U laravel_songs_db_tk6i_user -d laravel_songs_db_tk6i; then
               echo "DB is up!"
-              exit 0
+              break
             fi
             echo "Waiting for DB..."
             sleep 5
           done
-          echo "DB did not start in time" >&2
-          exit 1
 
       - name: Run migrations
         run: php artisan migrate --force
@@ -86,11 +87,13 @@ jobs:
         run: php artisan test
 
   deploy:
+    name: Deploy to Render
     runs-on: ubuntu-latest
     needs: test
     steps:
       - uses: actions/checkout@v3
-      - name: Deploy to Render
+
+      - name: Deploy
         shell: bash
         run: |
           if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
@@ -103,6 +106,7 @@ jobs:
             echo "No deployment for this branch."
             exit 0
           fi
+
           curl -X POST "https://api.render.com/v1/services/$SERVICE_ID/deploys" \
                -H "Accept: application/json" \
                -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}"
