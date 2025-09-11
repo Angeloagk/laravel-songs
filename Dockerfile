@@ -29,11 +29,8 @@ RUN composer install --no-dev --optimize-autoloader
 # Stel permissies in
 RUN chown -R www-data:www-data storage bootstrap/cache
 
-# Genereer app key (gebruikt APP_KEY van Render env vars)
+# Genereer app key (maakt gebruik van APP_KEY van Render env vars)
 RUN php artisan key:generate --ansi || true
-
-# Optional: voer migrations uit bij build (kan ook tijdens deploy)
-# RUN php artisan migrate --force
 
 # Apache configuratie
 RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|g' /etc/apache2/sites-available/000-default.conf \
