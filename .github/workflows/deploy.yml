@@ -16,15 +16,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: 8.2
-
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
-
       - name: Run Pint (lint)
         run: vendor/bin/pint --test || exit 1
 
@@ -58,21 +55,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: 8.2
-
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
-
-      - name: Use CI environment
+      - name: Use example env
         run: cp .env.example .env
-
       - name: Generate app key
         run: php artisan key:generate
-
       - name: Wait for DB
         run: |
           for i in {1..15}; do
@@ -83,10 +75,8 @@ jobs:
             echo "Waiting for DB..."
             sleep 5
           done
-
       - name: Run migrations
         run: php artisan migrate --force
-
       - name: Run tests
         run: php artisan test
 
@@ -98,23 +88,21 @@ jobs:
     needs: test
     steps:
       - uses: actions/checkout@v3
-
       - name: Deploy to Render
         shell: bash
         run: |
           if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
-            SERVICE_ID="${{ secrets.RENDER_SERVICE_ID_PROD }}"
+            SERVICE_ID=${{ secrets.RENDER_SERVICE_ID_PROD }}
           elif [[ "${GITHUB_REF}" == "refs/heads/dev" ]]; then
-            SERVICE_ID="${{ secrets.RENDER_SERVICE_ID_DEV }}"
+            SERVICE_ID=${{ secrets.RENDER_SERVICE_ID_DEV }}
           elif [[ "${GITHUB_REF}" == "refs/heads/test" ]]; then
-            SERVICE_ID="${{ secrets.RENDER_SERVICE_ID_TEST }}"
+            SERVICE_ID=${{ secrets.RENDER_SERVICE_ID_TEST }}
           else
             echo "No deployment for this branch."
             exit 0
           fi
 
           echo "Deploying branch ${GITHUB_REF} to Render service $SERVICE_ID..."
-
           curl -X POST "https://api.render.com/v1/services/$SERVICE_ID/deploys" \
                -H "Accept: application/json" \
                -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}"
