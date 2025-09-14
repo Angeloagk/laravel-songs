@@ -11,13 +11,13 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_DB: laravel_test
-          POSTGRES_USER: laravel_user
+          POSTGRES_DB: laravel_test_db
+          POSTGRES_USER: laravel
           POSTGRES_PASSWORD: secret
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready -U laravel_user -d laravel_test"
+          --health-cmd="pg_isready -U laravel -d laravel_test_db"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
@@ -35,26 +35,26 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
 
-      - name: Copy .env.testing
-        run: cp .env.testing .env
+      - name: Copy .env
+        run: cp .env.example .env
 
       - name: Generate app key
-        run: php artisan key:generate
+        run: php artisan key:generate --ansi
 
       - name: Run migrations
         env:
           DB_CONNECTION: pgsql
           DB_HOST: localhost
           DB_PORT: 5432
-          DB_DATABASE: laravel_test
-          DB_USERNAME: laravel_user
+          DB_DATABASE: laravel_test_db
+          DB_USERNAME: laravel
           DB_PASSWORD: secret
         run: php artisan migrate --force
 
       - name: Run tests
         run: php artisan test
 
-      - name: Run Laravel Pint (Linter)
+      - name: Run Laravel Pint (linter)
         run: ./vendor/bin/pint --test
 
   deploy:
@@ -64,12 +64,13 @@ jobs:
       - name: Deploy to Render
         run: |
           if [[ "${GITHUB_REF##*/}" == "dev" ]]; then
-            echo "Deploying to TEST environment..."
-            curl -X POST "${{ secrets.RENDER_TEST_DEPLOY_HOOK }}"
+            SERVICE_ID=${{ secrets.RENDER_SERVICE_ID_DEV }}
           elif [[ "${GITHUB_REF##*/}" == "staging" ]]; then
-            echo "Deploying to STAGING environment..."
-            curl -X POST "${{ secrets.RENDER_STAGING_DEPLOY_HOOK }}"
+            SERVICE_ID=${{ secrets.RENDER_SERVICE_ID_STAGING }}
           elif [[ "${GITHUB_REF##*/}" == "main" ]]; then
-            echo "Deploying to PRODUCTION environment..."
-            curl -X POST "${{ secrets.RENDER_PROD_DEPLOY_HOOK }}"
+            SERVICE_ID=${{ secrets.RENDER_SERVICE_ID_PROD }}
           fi
+
+          curl -X POST "https://api.render.com/v1/services/$SERVICE_ID/deploys" \
+               -H "Accept: application/json" \
+               -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}"
