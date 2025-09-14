@@ -26,11 +26,11 @@ COPY . .
 # Installeer Laravel dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Stel permissies in voor Laravel storage en cache
+# Stel permissies in voor storage en cache
 RUN chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 777 storage bootstrap/cache
-
-# Genereer app key (indien niet ingesteld via Render)
+# Na composer install en permissies
+# Geen .env bestand kopiëren
 RUN php artisan key:generate --ansi || true
 
 # Apache configuratie
