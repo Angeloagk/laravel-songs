@@ -82,21 +82,8 @@ jobs:
         run: |
           if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
             SERVICE_ID=${{ secrets.RENDER_SERVICE_ID_PROD }}
-<<<<<<< HEAD
-          elif [[ "${GITHUB_REF}" == "refs/heads/test" ]]; then
-            SERVICE_ID=${{ secrets.RENDER_SERVICE_ID_TEST }}
           elif [[ "${GITHUB_REF}" == "refs/heads/acc" ]]; then
             SERVICE_ID=${{ secrets.RENDER_SERVICE_ID_ACC }}
-          elif [[ "${GITHUB_REF}" == "refs/heads/dev" ]]; then
-            echo "Dev branch: only lint + test (no deploy)."
-            exit 0
-          else
-            echo "No deployment for this branch."
-            exit 0
-=======
-          elif [[ "${GITHUB_REF}" == "refs/heads/acc" ]]; then
-            SERVICE_ID=${{ secrets.RENDER_SERVICE_ID_ACC }}
->>>>>>> test
           fi
 
           echo "Deploying branch ${GITHUB_REF} to service $SERVICE_ID"
