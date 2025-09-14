@@ -29,17 +29,10 @@ RUN composer install --no-dev --optimize-autoloader
 # Stel permissies in voor storage en cache
 RUN chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 777 storage bootstrap/cache
-<<<<<<< HEAD
 
 # Gebruik .env.example en genereer app key
 RUN cp .env.example .env && php artisan key:generate --ansi || true
 
-=======
-# Na composer install en permissies
-# Geen .env bestand kopiëren
-RUN php artisan key:generate --ansi || true
-
->>>>>>> acc
 # Apache configuratie
 RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|g' /etc/apache2/sites-available/000-default.conf \
     && echo '<Directory /var/www/html/public>\n\
