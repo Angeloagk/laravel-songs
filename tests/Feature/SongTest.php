@@ -10,6 +10,14 @@ class SongTest extends TestCase
 {
     use RefreshDatabase;
 
+    // Middleware uitschakelen voor alle tests in deze class
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->withoutMiddleware(); // Hiermee schakelen we CSRF en andere middleware uit
+    }
+
     /** @test */
     public function a_song_can_be_created()
     {
