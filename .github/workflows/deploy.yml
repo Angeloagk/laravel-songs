@@ -6,6 +6,7 @@ on:
       - main
       - dev
       - test
+      - acc
   pull_request:
 
 jobs:
@@ -88,6 +89,8 @@ jobs:
     name: Deploy to Render
     runs-on: ubuntu-latest
     needs: test
+    # Alleen deployen voor main, test en acc branches
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test' || github.ref == 'refs/heads/acc'
     steps:
       - uses: actions/checkout@v3
 
@@ -96,17 +99,13 @@ jobs:
         run: |
           if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
             SERVICE_ID=${{ secrets.RENDER_SERVICE_ID_PROD }}
-          elif [[ "${GITHUB_REF}" == "refs/heads/dev" ]]; then
-            SERVICE_ID=${{ secrets.RENDER_SERVICE_ID_DEV }}
           elif [[ "${GITHUB_REF}" == "refs/heads/test" ]]; then
             SERVICE_ID=${{ secrets.RENDER_SERVICE_ID_TEST }}
-          else
-            echo "No deployment for this branch."
-            exit 0
+          elif [[ "${GITHUB_REF}" == "refs/heads/acc" ]]; then
+            SERVICE_ID=${{ secrets.RENDER_SERVICE_ID_ACC }}
           fi
 
           echo "Deploying branch ${GITHUB_REF} to service $SERVICE_ID"
-
           curl -X POST "https://api.render.com/v1/services/$SERVICE_ID/deploys" \
                -H "Accept: application/json" \
                -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}"
