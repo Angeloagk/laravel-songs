@@ -82,21 +82,32 @@ jobs:
                -H "Accept: application/json" \
                -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}"
 
-  deploy-acc-main:
-    name: Deploy (Acc/Main)
+  deploy-acc:
+    name: Deploy (Acc)
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/acc'
+    if: github.ref == 'refs/heads/acc'
     steps:
       - uses: actions/checkout@v3
 
-      - name: Deploy to Render (Acc/Main)
+      - name: Deploy to Render (Acc)
         run: |
-          if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
-            SERVICE_ID=${{ secrets.RENDER_SERVICE_ID_PROD }}
-          else
-            SERVICE_ID=${{ secrets.RENDER_SERVICE_ID_ACC }}
-          fi
-          echo "Deploying branch ${GITHUB_REF} to $SERVICE_ID"
+          SERVICE_ID=${{ secrets.RENDER_SERVICE_ID_ACC }}
+          echo "Deploying ACC branch to $SERVICE_ID"
+          curl -X POST "https://api.render.com/v1/services/$SERVICE_ID/deploys" \
+               -H "Accept: application/json" \
+               -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}"
+
+  deploy-main:
+    name: Deploy (Main)
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Deploy to Render (Main)
+        run: |
+          SERVICE_ID=${{ secrets.RENDER_SERVICE_ID_PROD }}
+          echo "Deploying MAIN branch to $SERVICE_ID"
           curl -X POST "https://api.render.com/v1/services/$SERVICE_ID/deploys" \
                -H "Accept: application/json" \
                -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}"
